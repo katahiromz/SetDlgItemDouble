@@ -2,7 +2,7 @@
 /* Copyright (C) 2019 Katayama Hirofumi MZ <katayama.hirofumi.mz@gmail.com>. */
 /* This file is public domain software. */
 #ifndef SETDLGITEMDOUBLE_H_
-#define SETDLGITEMDOUBLE_H_     2   /* Version 2 */
+#define SETDLGITEMDOUBLE_H_     3   /* Version 3 */
 
 #ifndef _INC_WINDOWS
     #include <windows.h>
@@ -11,16 +11,18 @@
 #ifdef __cplusplus
     #include <cstdlib>
     #include <cmath>
+    #include <cctype>
 #else
     #include <stdlib.h>
     #include <math.h>
+    #include <ctype.h>
 #endif
 
 #ifndef NO_STRSAFE
     #include <strsafe.h>
+#else
+    #include <shlwapi.h>
 #endif
-
-#include <shlwapi.h>
 
 #ifndef M_OPTIONAL
     #ifdef __cplusplus
@@ -62,7 +64,7 @@ GetDlgItemDouble(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
 #ifdef __cplusplus
     using namespace std;
 #endif
-    char text[64], *end;
+    char text[64], *pch;
     double eValue;
 
     if (pbTranslated)
@@ -71,13 +73,22 @@ GetDlgItemDouble(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
-    StrTrimA(text, " \t\n\r\f\v");
+    for (pch = text; isspace(*pch); ++pch)
+        ;
 
-    eValue = strtod(text, &end);
+    if (!*pch)
+    {
+        return 0;
+    }
+
+    eValue = strtod(text, &pch);
+
+    while (isspace(*pch))
+        ++pch;
 
     if (pbTranslated)
     {
-        *pbTranslated = (text != end) && (*end == 0) &&
+        *pbTranslated = (*pch == 0) &&
 #ifdef HAVE_ISINF
                         !isinf(eValue) &&
 #else
@@ -116,7 +127,7 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
 #ifdef __cplusplus
     using namespace std;
 #endif
-    char text[64], *end;
+    char text[64], *pch;
     float eValue;
 
     if (pbTranslated)
@@ -125,17 +136,26 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
-    StrTrimA(text, " \t\n\r\f\v");
+    for (pch = text; isspace(*pch); ++pch)
+        ;
+
+    if (!*pch)
+    {
+        return 0;
+    }
 
 #ifdef HAVE_STRTOF
-    eValue = strtof(text, &end);
+    eValue = strtof(text, &pch);
 #else
-    eValue = (float)strtod(text, &end);
+    eValue = (float)strtod(text, &pch);
 #endif
+
+    while (isspace(*pch))
+        ++pch;
 
     if (pbTranslated)
     {
-        *pbTranslated = (text != end) && (*end == 0) &&
+        *pbTranslated = (*pch == 0) &&
 #ifdef HAVE_ISINF
                         !isinf(eValue) &&
 #else
