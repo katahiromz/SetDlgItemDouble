@@ -2,7 +2,7 @@
 /* Copyright (C) 2019 Katayama Hirofumi MZ <katayama.hirofumi.mz@gmail.com>. */
 /* This file is public domain software. */
 #ifndef SETDLGITEMDOUBLE_H_
-#define SETDLGITEMDOUBLE_H_
+#define SETDLGITEMDOUBLE_H_     2   /* Version 2 */
 
 #ifndef _INC_WINDOWS
     #include <windows.h>
@@ -18,9 +18,9 @@
 
 #ifndef NO_STRSAFE
     #include <strsafe.h>
-#else
-    #include <shlwapi.h>
 #endif
+
+#include <shlwapi.h>
 
 #ifndef M_OPTIONAL
     #ifdef __cplusplus
@@ -71,11 +71,13 @@ GetDlgItemDouble(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
+    StrTrimA(text, " \t\n\r\f\v");
+
     eValue = strtod(text, &end);
 
     if (pbTranslated)
     {
-        *pbTranslated = (*end == 0) &&
+        *pbTranslated = (text != end) && (*end == 0) &&
 #ifdef HAVE_ISINF
                         !isinf(eValue) &&
 #else
@@ -123,6 +125,8 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
+    StrTrimA(text, " \t\n\r\f\v");
+
 #ifdef HAVE_STRTOF
     eValue = strtof(text, &end);
 #else
@@ -131,7 +135,7 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
 
     if (pbTranslated)
     {
-        *pbTranslated = (*end == 0) &&
+        *pbTranslated = (text != end) && (*end == 0) &&
 #ifdef HAVE_ISINF
                         !isinf(eValue) &&
 #else
