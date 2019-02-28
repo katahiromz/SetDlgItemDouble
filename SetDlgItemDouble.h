@@ -2,7 +2,7 @@
 /* Copyright (C) 2019 Katayama Hirofumi MZ <katayama.hirofumi.mz@gmail.com>. */
 /* This file is public domain software. */
 #ifndef SETDLGITEMDOUBLE_H_
-#define SETDLGITEMDOUBLE_H_     3   /* Version 3 */
+#define SETDLGITEMDOUBLE_H_     4   /* Version 4 */
 
 #ifndef _INC_WINDOWS
     #include <windows.h>
@@ -73,16 +73,16 @@ GetDlgItemDouble(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
+    /* return zero if space only or empty */
     for (pch = text; isspace(*pch); ++pch)
         ;
 
     if (!*pch)
-    {
         return 0;
-    }
 
     eValue = strtod(text, &pch);
 
+    /* ignore trailing space */
     while (isspace(*pch))
         ++pch;
 
@@ -136,13 +136,12 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     if (!GetDlgItemTextA(hDlg, nItemID, text, ARRAYSIZE(text)))
         return 0;
 
+    /* return zero if space only or empty */
     for (pch = text; isspace(*pch); ++pch)
         ;
 
     if (!*pch)
-    {
         return 0;
-    }
 
 #ifdef HAVE_STRTOF
     eValue = strtof(text, &pch);
@@ -150,6 +149,7 @@ GetDlgItemFloat(HWND hDlg, int nItemID, BOOL *pbTranslated M_OPTIONAL_(NULL))
     eValue = (float)strtod(text, &pch);
 #endif
 
+    /* ignore trailing space */
     while (isspace(*pch))
         ++pch;
 
